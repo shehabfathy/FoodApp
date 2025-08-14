@@ -3,12 +3,14 @@ import logo from "../../../../assets/Images/44.svg";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 export default function ResetPass() {
+  const location = useLocation();
+  const email = location.state?.email || "";
   let navigate = useNavigate();
   let {
     register,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isDirty, isValid, isSubmitting },
     handleSubmit,
     getValues,
   } = useForm({ mode: "onChange" });
@@ -49,14 +51,9 @@ export default function ResetPass() {
                       <i className="fa-solid fa-envelope"></i>
                     </span>
                     <input
-                      {...register("email", {
-                        required: "email is required",
-                        pattern: {
-                          value:
-                            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                          message: "Invalid email address",
-                        },
-                      })}
+                      {...register("email")}
+                      disabled
+                      value={email}
                       type="email"
                       className="form-control "
                       placeholder="Enter your E-mail"
@@ -78,6 +75,7 @@ export default function ResetPass() {
                       {...register("seed", {
                         required: "otp is required",
                       })}
+                      autoComplete="one-time-code"
                       type="text"
                       className="form-control "
                       placeholder="OTP"
@@ -142,9 +140,13 @@ export default function ResetPass() {
                   <button
                     className="btn  w-100 text-white"
                     style={{ backgroundColor: "#4AA35A" }}
-                    disabled={!isDirty || !isValid}
+                    disabled={!isDirty || !isValid || isSubmitting}
                   >
-                    Reset Password
+                    {isSubmitting ? (
+                      <i className="fa-solid fa-spinner"></i>
+                    ) : (
+                      "Submit"
+                    )}
                   </button>
                 </form>
               </div>

@@ -16,21 +16,24 @@ import NotFound from "./Modules/SharedComponents/NotFound/NotFound";
 import MasterLayout from "./Modules/SharedComponents/MasterLayout/MasterLayout";
 import RecipeList from "./Modules/Recipe/RecipeList/RecipeList";
 import CategoryList from "./Modules/Category/CategoryList/CategoryList";
-import UserList from "./Modules/Users/UserList/UserList";
 import FavoriteList from "./Modules/Favorite/FavoriteList/FavoriteList";
 import Dashboard from "./Modules/Dashboard/Dashboard";
 import RecipeData from "./Modules/Recipe/RecipeData/RecipeData";
 import CategoryData from "./Modules/Category/CategoryData/CategoryData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import ProtectedRoute from "./Modules/SharedComponents/ProtectedRoute/ProtectedRoute";
 import { ToastContainer } from "react-toastify";
+import ChangePassword from "./Modules/Authentication/Components/ChangePassword/ChangePassword";
+import UserList from "./Modules/Users/UserList/UserList";
 
 function App() {
   let [loginData, setLoginData] = useState(null);
+
   let getUser = () => {
-    let token = localStorage.getItem("token");
-    setLoginData(jwtDecode(token));
+    let encodedToken = localStorage.getItem("token");
+    let decodedToken = jwtDecode(encodedToken);
+    setLoginData(decodedToken);
   };
 
   let logOut = () => {
@@ -38,6 +41,12 @@ function App() {
     setLoginData(null);
     <Navigate to="/login" />;
   };
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      getUser();
+    }
+  }, []);
 
   const routes = createBrowserRouter([
     {
@@ -51,23 +60,24 @@ function App() {
         { path: "resetPass", element: <ResetPass /> },
         { path: "forgetPass", element: <ForgetPass /> },
         { path: "verifyAccount", element: <VerifyAccount /> },
+        { path: "changepassword", element: <ChangePassword /> },
       ],
     },
     {
       path: "dashboard",
       element: (
         <ProtectedRoute data={loginData}>
-          <MasterLayout logout={logOut} />
+          <MasterLayout logout={logOut} data={loginData} />
         </ProtectedRoute>
       ),
       errorElement: <NotFound />,
       children: [
-        { path: "", element: <Dashboard /> },
+        { path: "", element: <Dashboard data={loginData} /> },
         { path: "recipeList", element: <RecipeList /> },
         { path: "recipeData", element: <RecipeData /> },
         { path: "categoryData", element: <CategoryData /> },
         { path: "categoryList", element: <CategoryList /> },
-        { path: "user", element: <UserList /> },
+        { path: "userList", element: <UserList /> },
         { path: "favorite", element: <FavoriteList /> },
       ],
     },
@@ -79,5 +89,4 @@ function App() {
     </>
   );
 }
-
 export default App;

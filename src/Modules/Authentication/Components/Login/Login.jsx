@@ -3,8 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useRef } from "react";
+
 export default function Login({ getuser }) {
   let navigate = useNavigate();
+  let inputElement = useRef();
   let {
     register,
     formState: { errors, isValid, isDirty },
@@ -18,7 +21,7 @@ export default function Login({ getuser }) {
         `https://upskilling-egypt.com:3006/api/v1/Users/Login`,
         value
       );
-      toast.success(data.message, { position: "top-center" });
+      toast.success("login success");
       localStorage.setItem("token", data.token);
       getuser();
       navigate("/dashboard");
@@ -27,9 +30,17 @@ export default function Login({ getuser }) {
     }
   }
 
+  let showPassword = () => {
+    if (inputElement.current.type == "password") {
+      inputElement.current.type = "text";
+    } else {
+      inputElement.current.type = "password";
+    }
+  };
+
   return (
     <>
-      <section className="auth-container vh-100 d-flex justify-justify-content-center align-items-center">
+      <section className="auth-container vh-100 d-flex justify-content-center align-items-center">
         <div className="container-fluid ">
           <div className="row   ">
             <div className="col-md-6 mx-auto ">
@@ -85,12 +96,21 @@ export default function Login({ getuser }) {
                             "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 6 characters long.",
                         },
                       })}
+                      ref={(e) => {
+                        register("password").ref(e);
+                        inputElement.current = e;
+                      }}
                       type="password"
-                      className="form-control "
+                      className="form-control position-relative "
+                      autoComplete="new-password"
                       placeholder="Password"
                       aria-label="password"
                       aria-describedby="basic-addon1"
                     />
+                    <i
+                      onClick={() => showPassword()}
+                      className="fa-solid fa-eye position-absolute end-0 translate-middle top-50"
+                    ></i>
                   </div>
                   {errors.password && (
                     <div className="text-danger mb-3">
@@ -105,7 +125,7 @@ export default function Login({ getuser }) {
                       Register Now?
                     </Link>
                     <Link
-                      to="forgetPass"
+                      to="/forgetPass"
                       className=" text-decoration-none"
                       style={{ color: "#4AA35A" }}
                     >

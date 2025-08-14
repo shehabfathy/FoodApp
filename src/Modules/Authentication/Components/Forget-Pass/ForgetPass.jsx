@@ -8,7 +8,7 @@ export default function ForgetPass() {
   let navigate = useNavigate();
   let {
     register,
-    formState: { errors, isValid, isDirty },
+    formState: { errors, isValid, isDirty, isSubmitting },
     handleSubmit,
   } = useForm({ mode: "onChange" });
 
@@ -20,7 +20,7 @@ export default function ForgetPass() {
         value
       );
       toast.success(data.message, { position: "top-center" });
-      navigate("/resetPass");
+      navigate("/resetPass", { state: { email: value.email } });
     } catch (error) {
       toast.error(error.response.data.message, { position: "top-center" });
     }
@@ -75,9 +75,13 @@ export default function ForgetPass() {
                   <button
                     className="btn  w-100 text-white"
                     style={{ backgroundColor: "#4AA35A" }}
-                    disabled={!isValid || !isDirty}
+                    disabled={!isValid || !isDirty || isSubmitting}
                   >
-                    Submit
+                    {isSubmitting ? (
+                      <i className="fa-solid fa-spinner"></i>
+                    ) : (
+                      "Submit"
+                    )}
                   </button>
                 </form>
               </div>
