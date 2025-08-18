@@ -3,16 +3,16 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useDropzone } from "react-dropzone";
 
 export default function RecipeData() {
   const [Category, setCategory] = useState([]);
   const [tags, setTags] = useState([]);
+  const [previewImg, setpreviewImg] = useState(null);
+  let [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   let location = useLocation();
 
   let { EditData, isUpdate } = location.state || {};
-
   const {
     register,
     setValue,
@@ -20,23 +20,21 @@ export default function RecipeData() {
     formState: { errors },
   } = useForm();
 
-  const onDrop = (acceptedFiles) => {
-    setValue("recipeImage", acceptedFiles, { shouldValidate: true });
-  };
+  useEffect(() => {
+    if (isUpdate && tags.length > 0 && Category.length > 0) {
+      setValue("name", EditData.name);
+      setValue("tagId", EditData.tagId);
+      setValue("price", EditData.price);
+      setValue("categoriesIds", EditData.categoriesIds);
+      setValue("description", EditData.description);
+    }
+  }, [isUpdate, EditData, tags, Category, setValue]);
 
-  const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
-    onDrop,
-    multiple: false,
-    accept: { "image/*": [] },
-  });
-
-  if (EditData) {
-    setValue("name", EditData.name);
-    setValue("tagId", EditData.tag);
-    setValue("price", EditData.price);
-    setValue("categoriesIds", EditData.category);
-    setValue("recipeImage", EditData.image);
-  }
+  useEffect(() => {
+    if (isUpdate && EditData?.recipeImage.length > 0) {
+      setpreviewImg(EditData.recipeImage);
+    }
+  }, [isUpdate, EditData]);
 
   const onSubmit = async (value) => {
     let formData = new FormData();
@@ -51,7 +49,8 @@ export default function RecipeData() {
       await axios[isUpdate ? "put" : "post"](
         `https://upskilling-egypt.com:3006/api/v1/Recipe/${
           isUpdate ? EditData.id : ""
-        }`,
+        }
+        `,
         formData,
         {
           headers: {
@@ -59,7 +58,6 @@ export default function RecipeData() {
           },
         }
       );
-
       toast.success(
         `${
           isUpdate
@@ -120,7 +118,8 @@ export default function RecipeData() {
           <h5>
             {isUpdate ? (
               <>
-                Edit <span style={{ color: "#009247" }}>the Recipe !</span>
+                Edit
+                <span style={{ color: "#009247" }}> the Recipe !</span>
               </>
             ) : (
               <>
@@ -137,16 +136,27 @@ export default function RecipeData() {
         <div className="btns">
           <button
             className="btn btn-success"
-            onClick={() => navigate("/dashboard/recipeList")}
+            onClick={() => {
+              setLoading(true);
+              navigate("/dashboard/recipeList");
+            }}
           >
-            All Recipes
-            <i className="fa-solid fa-arrow-right ps-2"></i>
+            {loading ? (
+              <i className="fa-solid fa-spinner"></i>
+            ) : (
+              <>
+                All Recipes <i className="fa-solid fa-arrow-right ps-2"></i>
+              </>
+            )}
           </button>
         </div>
       </div>
 
       <fieldset>
-        <legend className="text-muted">{isUpdate ? "" : "Add New Item"}</legend>
+        <legend className="text-muted">
+          {" "}
+          {isUpdate ? "" : "Add New Item"}{" "}
+        </legend>
         <form className="w-75 mx-auto py-3" onSubmit={handleSubmit(onSubmit)}>
           <input
             {...register("name", { required: "Enter a Recipe Name" })}
@@ -215,33 +225,30 @@ export default function RecipeData() {
             </span>
           )}
 
-          <div {...getRootProps()} className="dropZoneStyle text-center mb-3">
-            <input {...getInputProps()} />
-            <i className="fa-solid fa-arrow-up-from-bracket fa-xl mb-3"></i>
-            <p>
-              {acceptedFiles.length > 0 ? (
-                acceptedFiles[0].name
-              ) : (
-                <>
-                  Drag & Drop or{" "}
-                  <span style={{ color: "#009247" }}>Choose a Item Image</span>{" "}
-                  to Upload
-                </>
-              )}
-            </p>
-          </div>
+          {previewImg && (
+            <div>
+              <p>current Image :</p>
+              <img
+                className="mb-3 "
+                width={100}
+                src={previewImg}
+                alt="Recipe-img"
+              />
+            </div>
+          )}
+          <input
+            {...register("recipeImage", {
+              required: "Please upload an image",
+            })}
+            className="dropZoneStyle w-100 mb-3"
+            type="file"
+          />
+
           {errors.recipeImage && (
             <span className="text-danger mb-3">
               {errors.recipeImage.message}
             </span>
           )}
-
-          <input
-            type="hidden"
-            {...register("recipeImage", {
-              required: "Please upload an image",
-            })}
-          />
 
           <div className="btns d-flex justify-content-end align-items-center">
             <button
@@ -249,10 +256,16 @@ export default function RecipeData() {
               className="btn border-1 border-success me-2 px-4"
               onClick={() => navigate("/dashboard/recipeList")}
             >
-              Cancel
+              {loading ? <i className="fa-solid fa-spinner"></i> : "Cancel"}
             </button>
             <button type="submit" className="btn btn-success px-4">
-              {isUpdate ? "Update" : "Save"}
+              {loading ? (
+                <i className="fa-solid fa-spinner"></i>
+              ) : isUpdate ? (
+                "Update"
+              ) : (
+                "Save"
+              )}
             </button>
           </div>
         </form>

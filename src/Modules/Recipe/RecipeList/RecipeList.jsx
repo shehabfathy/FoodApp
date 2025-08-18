@@ -10,8 +10,10 @@ import { useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import DeleteConfirmation from "../../SharedComponents/DeleteConfirmation/DeleteConfirmation";
+import NoData from "../../SharedComponents/NoData/NoData";
 export default function RecipeList() {
   let navigate = useNavigate();
+  let [listId, setListId] = useState(null);
   let [Recipes, setRecipes] = useState([]);
   let [loading, setLoading] = useState(true);
   let [idItem, setIdItem] = useState(0);
@@ -32,6 +34,7 @@ export default function RecipeList() {
           },
         }
       );
+
       setRecipes(data.data);
       setLoading(false);
     } catch (error) {
@@ -80,9 +83,17 @@ export default function RecipeList() {
         <div className="btns">
           <button
             className="btn btn-success"
-            onClick={() => navigate("/dashboard/recipeData")}
+            onClick={() => {
+              setLoading(true);
+              navigate("/dashboard/recipeData");
+              setLoading(false);
+            }}
           >
-            Add New Item
+            {loading ? (
+              <i className="fa-solid fa-spinner"></i>
+            ) : (
+              <>Add New Item</>
+            )}
           </button>
         </div>
       </div>
@@ -163,28 +174,46 @@ export default function RecipeList() {
                       <td>{item.tag.name}</td>
                       <td>{item.category[0]?.name}</td>
                       <td>
-                        <i
-                          className="fa-solid fa-pen-to-square text-warning "
-                          onClick={() => {
-                            let isUpdate = true;
-                            let EditData = {
-                              name: item.name,
-                              price: item.price,
-                              id: item.id,
-                              tagId: item.tag.id,
-                              categoryId: item.category[0]?.id,
-                              image: `https://upskilling-egypt.com:3006/${item.imagePath}`,
-                            };
-                            console.log(EditData);
-                            navigate("/dashboard/recipeData", {
-                              state: { isUpdate, EditData },
-                            });
-                          }}
-                        ></i>
-                        <i
-                          className="fa-solid fa-trash-can text-danger ps-3  "
-                          onClick={() => handleShow(item.id)}
-                        ></i>
+                        <div className=" listIcon">
+                          <i
+                            className="fa-solid fa-ellipsis "
+                            onClick={() => {
+                              setListId(listId === item.id ? null : item.id);
+                            }}
+                          >
+                            {listId === item.id && (
+                              <ul className=" p-2   shadow-sm ">
+                                <li
+                                  className="mb-2 "
+                                  onClick={() => {
+                                    let isUpdate = true;
+                                    let EditData = {
+                                      name: item.name,
+                                      price: item.price,
+                                      id: item.id,
+                                      tagId: item.tag.id,
+                                      categoriesIds: item.category[0]?.id,
+                                      recipeImage: `https://upskilling-egypt.com:3006/${item.imagePath}`,
+                                    };
+                                    navigate("/dashboard/recipeData", {
+                                      state: { isUpdate, EditData },
+                                    });
+                                  }}
+                                >
+                                  <i className="fa-solid fa-pen-to-square text-warning  "></i>
+                                  <span>Edit</span>
+                                </li>
+                                <li
+                                  className="d-flex align-align-items-center "
+                                  onClick={() => handleShow(item.id)}
+                                >
+                                  <i className="fa-solid fa-trash-can text-danger  "></i>
+                                  <span>Delete</span>
+                                </li>
+                              </ul>
+                            )}
+                          </i>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -3,10 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export default function Login({ getuser }) {
   let navigate = useNavigate();
+  let [Loading, setLoading] = useState(false);
   let inputElement = useRef();
   let {
     register,
@@ -21,12 +22,15 @@ export default function Login({ getuser }) {
         `https://upskilling-egypt.com:3006/api/v1/Users/Login`,
         value
       );
+      setLoading(true);
       toast.success("login success");
       localStorage.setItem("token", data.token);
       getuser();
       navigate("/dashboard");
     } catch (error) {
       toast.error(error.response.data.message, { position: "top-center" });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -137,7 +141,11 @@ export default function Login({ getuser }) {
                     style={{ backgroundColor: "#4AA35A" }}
                     disabled={!isValid || !isDirty}
                   >
-                    Login
+                    {Loading ? (
+                      <i className="fa-solid fa-spinner"></i>
+                    ) : (
+                      "Login"
+                    )}
                   </button>
                 </form>
               </div>

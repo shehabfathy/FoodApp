@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../SharedComponents/Header/Header";
 import { useNavigate } from "react-router-dom";
 export default function Dashboard({ data }) {
+  let [loading, setLoading] = useState(false);
   let navigate = useNavigate();
   return (
     <>
@@ -28,9 +29,18 @@ export default function Dashboard({ data }) {
           <div className="btns">
             <button
               className="btn btn-success "
-              onClick={() => navigate("/dashboard/recipeList")}
+              onClick={() => {
+                setLoading(true);
+                navigate("/dashboard/recipeList");
+              }}
             >
-              Fill Recipes <i className="fa-solid fa-arrow-right ps-2"></i>
+              {loading ? (
+                <i className="fa-solid fa-spinner"></i>
+              ) : (
+                <>
+                  Fill Recipes <i className="fa-solid fa-arrow-right ps-2"></i>
+                </>
+              )}
             </button>
           </div>
         </div>
