@@ -9,6 +9,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import DeleteConfirmation from "../../SharedComponents/DeleteConfirmation/DeleteConfirmation";
 import { useForm } from "react-hook-form";
+import { axiosInstance, categoriesUlr } from "../../../Services/Url";
 
 export default function CategoryList() {
   let [idItem, setIdItem] = useState(0);
@@ -16,6 +17,9 @@ export default function CategoryList() {
   let [loading, setLoading] = useState(true);
   let [editId, setEditId] = useState(0);
   let [isAdd, setIsAdd] = useState(true);
+  let [pageNum, setPageNum] = useState([]);
+  let [activePage, setActivePage] = useState(1);
+
   let {
     register,
     formState: { errors },
@@ -46,19 +50,13 @@ export default function CategoryList() {
     }
   };
 
-  let getAllCategories = async () => {
+  let getAllCategories = async (pageSize, pageNumber) => {
     try {
-      let { data } = await axios.get(
-        "https://upskilling-egypt.com:3006/api/v1/Category/?pageSize=5&pageNumber=1",
-        {
-          headers: {
-            Authorization: localStorage.getItem("token"),
-          },
-        }
-      );
-
+      let { data } = await axiosInstance.get(categoriesUlr.allCategories, {
+        params: { pageSize, pageNumber },
+      });
       setCategory(data.data);
-
+      setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
       setLoading(false);
     } catch (error) {
       toast(error.response.data.message);
@@ -68,14 +66,7 @@ export default function CategoryList() {
 
   let DeleteItem = async () => {
     try {
-      await axios.delete(
-        `https://upskilling-egypt.com:3006/api/v1/Category/${idItem}`,
-        {
-          headers: {
-            Authorization: localStorage.getItem("token"),
-          },
-        }
-      );
+      await axiosInstance.delete(categoriesUlr.deleteCategory(idItem));
       handleClose();
       getAllCategories();
 
@@ -114,8 +105,8 @@ export default function CategoryList() {
   };
 
   useEffect(() => {
-    getAllCategories();
-  }, []);
+    getAllCategories(4, activePage);
+  }, [activePage]);
 
   return (
     <>
@@ -214,37 +205,109 @@ export default function CategoryList() {
       ) : (
         <div className="p-3">
           {Category.length > 0 ? (
-            <table className="table text-center ">
-              <thead>
-                <tr>
-                  <th scope="col">Id</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Creation Data</th>
-                  <th scope="col">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Category.map((item) => {
-                  return (
-                    <tr key={item.id}>
-                      <th scope="row">{item.id}</th>
-                      <td>{item.name}</td>
-                      <td>{item.creationDate}</td>
-                      <td>
-                        <i
-                          className="fa-solid fa-pen-to-square text-warning"
-                          onClick={() => handleShowAdd(item.id, item.name)}
-                        ></i>
-                        <i
-                          className="fa-solid fa-trash-can text-danger ps-3 "
-                          onClick={() => handleShow(item.id)}
-                        ></i>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <>
+              <table className="table text-center ">
+                <thead>
+                  <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Creation Data</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Category.map((item) => {
+                    return (
+                      <tr key={item.id}>
+                        <th scope="row">{item.id}</th>
+                        <td>{item.name}</td>
+                        <td>{item.creationDate}</td>
+                        <td>
+                          <i
+                            className="fa-solid fa-pen-to-square text-warning"
+                            onClick={() => handleShowAdd(item.id, item.name)}
+                          ></i>
+                          <i
+                            className="fa-solid fa-trash-can text-danger ps-3 "
+                            onClick={() => handleShow(item.id)}
+                          ></i>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <nav aria-label="Page navigation example">
+                <ul className="pagination d-flex justify-content-center">
+                  <li className="page-item">
+                    <a
+                      className={`page-link ${
+                        activePage > 1 ? "" : "disabled"
+                      }`}
+                      onClick={() => {
+                        if (activePage >= 1) {
+                          setActivePage(activePage - 1);
+                          setLoading(true);
+                        }
+                      }}
+                      aria-label="Previous"
+                    >
+                      <span aria-hidden="true">«</span>
+                    </a>
+                  </li>
+                  {pageNum
+                    .filter((page) => {
+                      if (activePage == pageNum.length) {
+                        return (
+                          page == activePage ||
+                          page == activePage - 1 ||
+                          page == activePage - 2
+                        );
+                      } else {
+                        return (
+                          page == activePage - 1 ||
+                          page == activePage ||
+                          page == activePage + 1
+                        );
+                      }
+                    })
+                    .map((page, i) => (
+                      <li
+                        key={i}
+                        onClick={() => {
+                          if (activePage != page) {
+                            setActivePage(page);
+                            setLoading(true);
+                          }
+                        }}
+                        className="page-item"
+                      >
+                        <a
+                          className={`page-link ${
+                            activePage == page ? "active" : ""
+                          }`}
+                        >
+                          {page}
+                        </a>
+                      </li>
+                    ))}
+                  <li className="page-item">
+                    <a
+                      className={`page-link ${
+                        activePage == pageNum.length ? "disabled" : ""
+                      }`}
+                      onClick={() => {
+                        setActivePage(activePage + 1);
+                        setLoading(true);
+                      }}
+                      aria-label="Next"
+                    >
+                      <span aria-hidden="true">»</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </>
           ) : (
             <NoData />
           )}

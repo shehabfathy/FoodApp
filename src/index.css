@@ -18,7 +18,7 @@ p {
 .sidebar-container .ps-sidebar-container {
   background-color: #1f263e;
   border-top-right-radius: 50px;
-  min-height: 100vh;
+  min-height: 115vh;
   overflow-y: auto;
 }
 
@@ -47,7 +47,7 @@ button .btn-close {
   background-color: red !important;
 }
 .table-img {
-  width: 30px;
+  width: 50px;
 }
 
 .dropZoneStyle {
@@ -86,4 +86,16 @@ button .btn-close {
 .listIcon span {
   font-weight: normal;
   font-size: 15px;
+}
+
+.table-input:focus {
+  outline: 0;
+}
+.table-input {
+  width: 400px;
+}
+.icon-input {
+  color: grey;
+  top: 15px;
+  left: 5px;
 }

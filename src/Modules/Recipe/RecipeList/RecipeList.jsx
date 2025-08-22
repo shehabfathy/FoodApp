@@ -4,38 +4,58 @@ import Header from "../../SharedComponents/Header/Header";
 import GirlPhoto from "../../../assets/Images/header.png";
 import NoDataImg from "../../../assets/Images/NoData.png";
 import { toast } from "react-toastify";
-import axios from "axios";
 import { BallTriangle } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import DeleteConfirmation from "../../SharedComponents/DeleteConfirmation/DeleteConfirmation";
 import NoData from "../../SharedComponents/NoData/NoData";
+import { axiosInstance, recipeUrl } from "../../../Services/Url";
 export default function RecipeList() {
   let navigate = useNavigate();
   let [listId, setListId] = useState(null);
   let [Recipes, setRecipes] = useState([]);
   let [loading, setLoading] = useState(true);
+  let [pageNum, setPageNum] = useState([]);
+  const [activePage, setActivePage] = useState(1);
   let [idItem, setIdItem] = useState(0);
   const [show, setShow] = useState(false);
+  const [name, setName] = useState("");
+  const [selectedTag, setSelectedTag] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState(0);
   const handleClose = () => setShow(false);
   const handleShow = (id) => {
     setIdItem(id);
     setShow(true);
   };
 
-  let getAllRecipes = async () => {
-    try {
-      let { data } = await axios.get(
-        "https://upskilling-egypt.com:3006/api/v1/Recipe/?pageSize=10&pageNumber=1",
-        {
-          headers: {
-            Authorization: localStorage.getItem("token"),
-          },
-        }
-      );
+  const uniqueTags = [
+    ...new Map(Recipes.map((r) => [r.tag.id, r.tag])).values(),
+  ];
 
+  const uniqueCategories = [
+    ...new Map(Recipes.map((x) => [x.category[0]?.id, x.category[0]])).values(),
+  ];
+
+  let getAllRecipes = async (
+    pageSize,
+    pageNumber,
+    name,
+    selectedTag,
+    selectedCategory
+  ) => {
+    try {
+      let { data } = await axiosInstance.get(recipeUrl.allRecipes, {
+        params: {
+          pageSize,
+          pageNumber,
+          name,
+          tagId: selectedTag,
+          categoryId: selectedCategory,
+        },
+      });
       setRecipes(data.data);
+      setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
       setLoading(false);
     } catch (error) {
       toast(error.response.data.message);
@@ -45,16 +65,10 @@ export default function RecipeList() {
 
   let deleteRecipe = async () => {
     try {
-      await axios.delete(
-        `https://upskilling-egypt.com:3006/api/v1/Recipe/${idItem}`,
-        {
-          headers: {
-            Authorization: localStorage.getItem("token"),
-          },
-        }
-      );
+      await axiosInstance.delete(recipeUrl.deleteRecipe(idItem));
       handleClose();
-      getAllRecipes();
+      await getAllRecipes(3, activePage, name, selectedTag, selectedCategory);
+      toast.success("Recipe deleted successfully");
       setLoading(false);
     } catch (error) {
       toast(error.response.data.message);
@@ -62,9 +76,19 @@ export default function RecipeList() {
     }
   };
 
+  let handleFilter = (e) => {
+    setName(e.target.value);
+    setActivePage(1);
+  };
+  let handleTagFilter = (e) => {
+    setSelectedTag(e.target.value);
+  };
+  let handleCategoryFilter = (e) => {
+    setSelectedCategory(e.target.value);
+  };
   useEffect(() => {
-    getAllRecipes();
-  }, []);
+    getAllRecipes(3, activePage, name, selectedTag, selectedCategory);
+  }, [activePage, name, selectedTag, selectedCategory]);
 
   return (
     <>
@@ -137,89 +161,195 @@ export default function RecipeList() {
             </Modal.Footer>
           </Modal>
           {Recipes.length > 0 ? (
-            <table className="table text-center ">
-              <thead>
-                <tr>
-                  <th scope="col">Item Name</th>
-                  <th scope="col">Image</th>
-                  <th scope="col">Price</th>
-                  <th scope="col">Description</th>
-                  <th scope="col">tag</th>
-                  <th scope="col">Category</th>
-                  <th scope="col">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Recipes.map((item) => {
-                  return (
-                    <tr key={item.id}>
-                      <td scope="row">{item.name}</td>
-                      <td>
-                        {item.imagePath == "" ? (
-                          <img
-                            className="table-img"
-                            src={GirlPhoto}
-                            alt="food-img"
-                          />
-                        ) : (
-                          <img
-                            className="table-img"
-                            src={`https://upskilling-egypt.com:3006/${item.imagePath}`}
-                            alt="Food-img"
-                          />
-                        )}
-                      </td>
-                      <td>{item.price} EGP</td>
-                      <td>{item.description}</td>
-                      <td>{item.tag.name}</td>
-                      <td>{item.category[0]?.name}</td>
-                      <td>
-                        <div className=" listIcon">
-                          <i
-                            className="fa-solid fa-ellipsis "
-                            onClick={() => {
-                              setListId(listId === item.id ? null : item.id);
-                            }}
-                          >
-                            {listId === item.id && (
-                              <ul className=" p-2   shadow-sm ">
-                                <li
-                                  className="mb-2 "
-                                  onClick={() => {
-                                    let isUpdate = true;
-                                    let EditData = {
-                                      name: item.name,
-                                      price: item.price,
-                                      id: item.id,
-                                      tagId: item.tag.id,
-                                      categoriesIds: item.category[0]?.id,
-                                      recipeImage: `https://upskilling-egypt.com:3006/${item.imagePath}`,
-                                    };
-                                    navigate("/dashboard/recipeData", {
-                                      state: { isUpdate, EditData },
-                                    });
-                                  }}
-                                >
-                                  <i className="fa-solid fa-pen-to-square text-warning  "></i>
-                                  <span>Edit</span>
-                                </li>
-                                <li
-                                  className="d-flex align-align-items-center "
-                                  onClick={() => handleShow(item.id)}
-                                >
-                                  <i className="fa-solid fa-trash-can text-danger  "></i>
-                                  <span>Delete</span>
-                                </li>
-                              </ul>
-                            )}
-                          </i>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <>
+              <div className=" mb-2 d-flex justify-content-between align-items-center">
+                <div>
+                  <input
+                    className="py-2  px-4  border-1 border-light-subtle table-input"
+                    type="text"
+                    placeholder="Search by name... "
+                    onChange={handleFilter}
+                  />
+                </div>
+                <div>
+                  <select
+                    onChange={handleTagFilter}
+                    value={selectedTag}
+                    className=" py-2 px-4 me-3  border-1 border-light-subtle"
+                  >
+                    <option value={0}>All Tags</option>
+                    {uniqueTags.map((tag) => (
+                      <option key={tag.id} value={tag.id}>
+                        {tag.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    onChange={handleCategoryFilter}
+                    value={selectedCategory}
+                    className=" py-2 px-4  border-1 border-light-subtle"
+                  >
+                    <option value={0}> All Categories</option>
+                    {uniqueCategories.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <table className="table text-center ">
+                <thead>
+                  <tr>
+                    <th scope="col">Item Name</th>
+                    <th scope="col">Image</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">tag</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Recipes.map((item) => {
+                    return (
+                      <tr key={item.id}>
+                        <td scope="row">{item.name}</td>
+                        <td>
+                          {item.imagePath == "" ? (
+                            <img
+                              className="table-img"
+                              src={GirlPhoto}
+                              alt="food-img"
+                            />
+                          ) : (
+                            <img
+                              className="table-img"
+                              src={`https://upskilling-egypt.com:3006/${item.imagePath}`}
+                              alt="Food-img"
+                            />
+                          )}
+                        </td>
+                        <td>{item.price} EGP</td>
+                        <td>{item.description}</td>
+                        <td>{item.tag.name}</td>
+                        <td>{item.category[0]?.name}</td>
+                        <td>
+                          <div className=" listIcon">
+                            <i
+                              className="fa-solid fa-ellipsis "
+                              onClick={() => {
+                                setListId(listId === item.id ? null : item.id);
+                              }}
+                            >
+                              {listId === item.id && (
+                                <ul className=" p-2   shadow-sm ">
+                                  <li
+                                    className="mb-2 "
+                                    onClick={() => {
+                                      let isUpdate = true;
+                                      let EditData = {
+                                        name: item.name,
+                                        price: item.price,
+                                        id: item.id,
+                                        tagId: item.tag.id,
+                                        categoriesIds: item.category[0]?.id,
+                                        recipeImage: `https://upskilling-egypt.com:3006/${item.imagePath}`,
+                                      };
+                                      navigate("/dashboard/recipeData", {
+                                        state: { isUpdate, EditData },
+                                      });
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-pen-to-square text-warning  "></i>
+                                    <span>Edit</span>
+                                  </li>
+                                  <li
+                                    className="d-flex align-align-items-center "
+                                    onClick={() => handleShow(item.id)}
+                                  >
+                                    <i className="fa-solid fa-trash-can text-danger  "></i>
+                                    <span>Delete</span>
+                                  </li>
+                                </ul>
+                              )}
+                            </i>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <nav aria-label="Page navigation example ">
+                <ul className="pagination d-flex justify-content-center ">
+                  <li className="page-item">
+                    <a
+                      className={`page-link ${
+                        activePage > 1 ? "" : "disabled"
+                      }`}
+                      onClick={() => {
+                        if (activePage >= 1) {
+                          setActivePage(activePage - 1);
+                          setLoading(true);
+                        }
+                      }}
+                      aria-label="Previous"
+                    >
+                      <span aria-hidden="true">«</span>
+                    </a>
+                  </li>
+                  {pageNum
+                    .filter((page) => {
+                      if (activePage == pageNum.length) {
+                        return (
+                          page == activePage ||
+                          page == activePage - 1 ||
+                          page == activePage - 2
+                        );
+                      } else {
+                        return (
+                          page === activePage - 1 ||
+                          page === activePage ||
+                          page === activePage + 1
+                        );
+                      }
+                    })
+                    .map((page, i) => (
+                      <li key={i} className="page-item">
+                        <a
+                          className={`page-link ${
+                            page === activePage ? "active" : ""
+                          } `}
+                          onClick={() => {
+                            if (page != activePage) {
+                              setActivePage(page);
+                              setLoading(true);
+                            }
+                          }}
+                        >
+                          {page}
+                        </a>
+                      </li>
+                    ))}
+                  <li className="page-item">
+                    <a
+                      className={`page-link ${
+                        activePage == pageNum.length ? "disabled" : ""
+                      }`}
+                      onClick={() => {
+                        setActivePage(activePage + 1);
+                        setLoading(true);
+                      }}
+                      aria-label="Next"
+                    >
+                      <span aria-hidden="true">»</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </>
           ) : (
             <NoData />
           )}

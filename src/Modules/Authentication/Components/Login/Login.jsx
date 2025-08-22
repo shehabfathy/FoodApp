@@ -1,9 +1,9 @@
 import logo from "../../../../assets/Images/44.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useRef, useState } from "react";
+import { axiosInstance, userUrl } from "../../../../Services/Url";
 
 export default function Login({ getuser }) {
   let navigate = useNavigate();
@@ -18,10 +18,7 @@ export default function Login({ getuser }) {
   async function onSubmit(value) {
     console.log(value);
     try {
-      let { data } = await axios.post(
-        `https://upskilling-egypt.com:3006/api/v1/Users/Login`,
-        value
-      );
+      let { data } = await axiosInstance.post(userUrl.login, value);
       setLoading(true);
       toast.success("login success");
       localStorage.setItem("token", data.token);

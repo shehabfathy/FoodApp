@@ -2,8 +2,8 @@ import React from "react";
 import logo from "../../../../assets/Images/44.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { axiosInstance, userUrl } from "../../../../Services/Url";
 export default function ForgetPass() {
   let navigate = useNavigate();
   let {
@@ -15,10 +15,7 @@ export default function ForgetPass() {
   async function onSubmit(value) {
     console.log(value);
     try {
-      let { data } = await axios.post(
-        `https://upskilling-egypt.com:3006/api/v1/Users/Reset/Request`,
-        value
-      );
+      let { data } = await axiosInstance.post(userUrl.forgetPassword, value);
       toast.success(data.message, { position: "top-center" });
       navigate("/resetPass", { state: { email: value.email } });
     } catch (error) {

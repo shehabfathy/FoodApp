@@ -2,8 +2,8 @@ import React from "react";
 import logo from "../../../../assets/Images/44.svg";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import { axiosInstance, userUrl } from "../../../../Services/Url";
 export default function ResetPass() {
   const location = useLocation();
   const email = location.state?.email || "";
@@ -17,10 +17,7 @@ export default function ResetPass() {
 
   let onSubmit = async (value) => {
     try {
-      let { data } = await axios.post(
-        "https://upskilling-egypt.com:3006/api/v1/Users/Reset",
-        value
-      );
+      let { data } = await axiosInstance.post(userUrl.resetPassword, value);
       toast.success(data.message, { position: "top-center" });
       navigate("/login");
     } catch (error) {
