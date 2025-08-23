@@ -10,7 +10,12 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import DeleteConfirmation from "../../SharedComponents/DeleteConfirmation/DeleteConfirmation";
 import NoData from "../../SharedComponents/NoData/NoData";
-import { axiosInstance, recipeUrl } from "../../../Services/Url";
+import {
+  axiosInstance,
+  categoriesUlr,
+  recipeUrl,
+  TagUrl,
+} from "../../../Services/Url";
 export default function RecipeList() {
   let navigate = useNavigate();
   let [listId, setListId] = useState(null);
@@ -23,19 +28,13 @@ export default function RecipeList() {
   const [name, setName] = useState("");
   const [selectedTag, setSelectedTag] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(0);
+  const [Tags, setTags] = useState([]);
+  const [Categories, setCategories] = useState([]);
   const handleClose = () => setShow(false);
   const handleShow = (id) => {
     setIdItem(id);
     setShow(true);
   };
-
-  const uniqueTags = [
-    ...new Map(Recipes.map((r) => [r.tag.id, r.tag])).values(),
-  ];
-
-  const uniqueCategories = [
-    ...new Map(Recipes.map((x) => [x.category[0]?.id, x.category[0]])).values(),
-  ];
 
   let getAllRecipes = async (
     pageSize,
@@ -60,6 +59,24 @@ export default function RecipeList() {
     } catch (error) {
       toast(error.response.data.message);
       setLoading(false);
+    }
+  };
+
+  let getAllTags = async () => {
+    try {
+      let { data } = await axiosInstance(TagUrl.getTags);
+      setTags(data);
+    } catch (error) {
+      toast.error(error || "NO Tags Found");
+    }
+  };
+  let getAllCategories = async () => {
+    try {
+      let { data } = await axiosInstance(categoriesUlr.allCategories);
+
+      setCategories(data.data);
+    } catch (error) {
+      toast.error(error || "NO Tags Found");
     }
   };
 
@@ -89,6 +106,10 @@ export default function RecipeList() {
   useEffect(() => {
     getAllRecipes(3, activePage, name, selectedTag, selectedCategory);
   }, [activePage, name, selectedTag, selectedCategory]);
+  useEffect(() => {
+    getAllTags();
+    getAllCategories();
+  }, []);
 
   return (
     <>
@@ -99,262 +120,271 @@ export default function RecipeList() {
         }
         imgpath={header}
       />
-      <div className="title d-flex justify-content-between align-items-center p-3">
-        <div className="description">
-          <h5>Recipe Table Details</h5>
-          <p>You can check all details</p>
+      <div>
+        <div className="title d-flex justify-content-between align-items-center p-3">
+          <div className="description">
+            <h5>Recipe Table Details</h5>
+            <p>You can check all details</p>
+          </div>
+          <div className="btns">
+            <button
+              className="btn btn-success"
+              onClick={() => {
+                setLoading(true);
+                navigate("/dashboard/recipeData");
+                setLoading(false);
+              }}
+            >
+              {loading ? (
+                <i className="fa-solid fa-spinner"></i>
+              ) : (
+                <>Add New Item</>
+              )}
+            </button>
+          </div>
         </div>
-        <div className="btns">
-          <button
-            className="btn btn-success"
-            onClick={() => {
-              setLoading(true);
-              navigate("/dashboard/recipeData");
-              setLoading(false);
+
+        {loading ? (
+          <BallTriangle
+            height={100}
+            width={100}
+            radius={5}
+            color="#4fa94d"
+            ariaLabel="ball-triangle-loading"
+            wrapperStyle={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
-          >
-            {loading ? (
-              <i className="fa-solid fa-spinner"></i>
-            ) : (
-              <>Add New Item</>
-            )}
-          </button>
-        </div>
-      </div>
+            wrapperClass=""
+            visible={true}
+          />
+        ) : (
+          <div className="p-3">
+            <Modal show={show} onHide={handleClose}>
+              <Modal.Header className="py-4">
+                <i
+                  onClick={handleClose}
+                  className="fa-regular fa-circle-xmark fa-xl ms-auto"
+                  style={{ color: "rgba(204,0,0,1)" }}
+                ></i>
+              </Modal.Header>
+              <Modal.Body>
+                <DeleteConfirmation deletedItem={"Recipe"} />
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                  variant="primary"
+                  className="text-danger bg-transparent border-danger fw-bold"
+                  onClick={() => deleteRecipe()}
+                >
+                  Delete this item
+                </Button>
+              </Modal.Footer>
+            </Modal>
+            {Recipes.length > 0 ? (
+              <>
+                <div className=" mb-2  d-flex justify-content-between align-items-center w-100">
+                  <div className="position-relative w-50  ">
+                    <i className="fa-solid fa-magnifying-glass position-absolute icon-input"></i>
+                    <input
+                      className="  px-4 py-1 w-100 border-1 border-light-subtle table-input"
+                      type="text"
+                      placeholder="Search by name... "
+                      onChange={handleFilter}
+                    />
+                  </div>
+                  <div>
+                    <div>
+                      <select
+                        onChange={handleTagFilter}
+                        value={selectedTag}
+                        className="  px-4 py-1 me-3  border-1 border-light-subtle"
+                      >
+                        <option value={0}>All Tags</option>
+                        {Tags?.map((tag) => (
+                          <option key={tag.id} value={tag.id}>
+                            {tag.name}
+                          </option>
+                        ))}
+                      </select>
 
-      {loading ? (
-        <BallTriangle
-          height={100}
-          width={100}
-          radius={5}
-          color="#4fa94d"
-          ariaLabel="ball-triangle-loading"
-          wrapperStyle={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          wrapperClass=""
-          visible={true}
-        />
-      ) : (
-        <div className="p-3">
-          <Modal show={show} onHide={handleClose}>
-            <Modal.Header className="py-4">
-              <i
-                onClick={handleClose}
-                className="fa-regular fa-circle-xmark fa-xl ms-auto"
-                style={{ color: "rgba(204,0,0,1)" }}
-              ></i>
-            </Modal.Header>
-            <Modal.Body>
-              <DeleteConfirmation deletedItem={"Recipe"} />
-            </Modal.Body>
-            <Modal.Footer>
-              <Button
-                variant="primary"
-                className="text-danger bg-transparent border-danger fw-bold"
-                onClick={() => deleteRecipe()}
-              >
-                Delete this item
-              </Button>
-            </Modal.Footer>
-          </Modal>
-          {Recipes.length > 0 ? (
-            <>
-              <div className=" mb-2 d-flex justify-content-between align-items-center">
-                <div>
-                  <input
-                    className="py-2  px-4  border-1 border-light-subtle table-input"
-                    type="text"
-                    placeholder="Search by name... "
-                    onChange={handleFilter}
-                  />
+                      <select
+                        onChange={handleCategoryFilter}
+                        value={selectedCategory}
+                        className="  px-4 py-1 border-1 border-light-subtle"
+                      >
+                        <option value={0}> All Categories</option>
+                        {Categories?.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <select
-                    onChange={handleTagFilter}
-                    value={selectedTag}
-                    className=" py-2 px-4 me-3  border-1 border-light-subtle"
-                  >
-                    <option value={0}>All Tags</option>
-                    {uniqueTags.map((tag) => (
-                      <option key={tag.id} value={tag.id}>
-                        {tag.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    onChange={handleCategoryFilter}
-                    value={selectedCategory}
-                    className=" py-2 px-4  border-1 border-light-subtle"
-                  >
-                    <option value={0}> All Categories</option>
-                    {uniqueCategories.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <table className="table text-center ">
-                <thead>
-                  <tr>
-                    <th scope="col">Item Name</th>
-                    <th scope="col">Image</th>
-                    <th scope="col">Price</th>
-                    <th scope="col">Description</th>
-                    <th scope="col">tag</th>
-                    <th scope="col">Category</th>
-                    <th scope="col">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Recipes.map((item) => {
-                    return (
-                      <tr key={item.id}>
-                        <td scope="row">{item.name}</td>
-                        <td>
-                          {item.imagePath == "" ? (
-                            <img
-                              className="table-img"
-                              src={GirlPhoto}
-                              alt="food-img"
-                            />
-                          ) : (
-                            <img
-                              className="table-img"
-                              src={`https://upskilling-egypt.com:3006/${item.imagePath}`}
-                              alt="Food-img"
-                            />
-                          )}
-                        </td>
-                        <td>{item.price} EGP</td>
-                        <td>{item.description}</td>
-                        <td>{item.tag.name}</td>
-                        <td>{item.category[0]?.name}</td>
-                        <td>
-                          <div className=" listIcon">
-                            <i
-                              className="fa-solid fa-ellipsis "
-                              onClick={() => {
-                                setListId(listId === item.id ? null : item.id);
-                              }}
-                            >
-                              {listId === item.id && (
-                                <ul className=" p-2   shadow-sm ">
-                                  <li
-                                    className="mb-2 "
-                                    onClick={() => {
-                                      let isUpdate = true;
-                                      let EditData = {
-                                        name: item.name,
-                                        price: item.price,
-                                        id: item.id,
-                                        tagId: item.tag.id,
-                                        categoriesIds: item.category[0]?.id,
-                                        recipeImage: `https://upskilling-egypt.com:3006/${item.imagePath}`,
-                                      };
-                                      navigate("/dashboard/recipeData", {
-                                        state: { isUpdate, EditData },
-                                      });
-                                    }}
-                                  >
-                                    <i className="fa-solid fa-pen-to-square text-warning  "></i>
-                                    <span>Edit</span>
-                                  </li>
-                                  <li
-                                    className="d-flex align-align-items-center "
-                                    onClick={() => handleShow(item.id)}
-                                  >
-                                    <i className="fa-solid fa-trash-can text-danger  "></i>
-                                    <span>Delete</span>
-                                  </li>
-                                </ul>
-                              )}
-                            </i>
-                          </div>
-                        </td>
+                <div className="table-x">
+                  <table className="table  text-center ">
+                    <thead>
+                      <tr>
+                        <th scope="col">Item Name</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">tag</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Action</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <nav aria-label="Page navigation example ">
-                <ul className="pagination d-flex justify-content-center ">
-                  <li className="page-item">
-                    <a
-                      className={`page-link ${
-                        activePage > 1 ? "" : "disabled"
-                      }`}
-                      onClick={() => {
-                        if (activePage >= 1) {
-                          setActivePage(activePage - 1);
-                          setLoading(true);
-                        }
-                      }}
-                      aria-label="Previous"
-                    >
-                      <span aria-hidden="true">«</span>
-                    </a>
-                  </li>
-                  {pageNum
-                    .filter((page) => {
-                      if (activePage == pageNum.length) {
+                    </thead>
+                    <tbody>
+                      {Recipes.map((item) => {
                         return (
-                          page == activePage ||
-                          page == activePage - 1 ||
-                          page == activePage - 2
+                          <tr key={item.id}>
+                            <td scope="row">{item.name}</td>
+                            <td>
+                              {item.imagePath == "" ? (
+                                <img
+                                  className="table-img"
+                                  src={GirlPhoto}
+                                  alt="food-img"
+                                />
+                              ) : (
+                                <img
+                                  className="table-img"
+                                  src={`https://upskilling-egypt.com:3006/${item.imagePath}`}
+                                  alt="Food-img"
+                                />
+                              )}
+                            </td>
+                            <td>{item.price} EGP</td>
+                            <td>{item.description}</td>
+                            <td>{item.tag.name}</td>
+                            <td>{item.category[0]?.name}</td>
+                            <td>
+                              <div className=" listIcon">
+                                <i
+                                  className="fa-solid fa-ellipsis "
+                                  onClick={() => {
+                                    setListId(
+                                      listId === item.id ? null : item.id
+                                    );
+                                  }}
+                                >
+                                  {listId === item.id && (
+                                    <ul className=" p-2   shadow-sm ">
+                                      <li
+                                        className="mb-2 "
+                                        onClick={() => {
+                                          let isUpdate = true;
+                                          let EditData = {
+                                            name: item.name,
+                                            price: item.price,
+                                            id: item.id,
+                                            tagId: item.tag.id,
+                                            categoriesIds: item.category[0]?.id,
+                                            recipeImage: `https://upskilling-egypt.com:3006/${item.imagePath}`,
+                                          };
+                                          navigate("/dashboard/recipeData", {
+                                            state: { isUpdate, EditData },
+                                          });
+                                        }}
+                                      >
+                                        <i className="fa-solid fa-pen-to-square text-warning  "></i>
+                                        <span>Edit</span>
+                                      </li>
+                                      <li
+                                        className="d-flex align-align-items-center "
+                                        onClick={() => handleShow(item.id)}
+                                      >
+                                        <i className="fa-solid fa-trash-can text-danger  "></i>
+                                        <span>Delete</span>
+                                      </li>
+                                    </ul>
+                                  )}
+                                </i>
+                              </div>
+                            </td>
+                          </tr>
                         );
-                      } else {
-                        return (
-                          page === activePage - 1 ||
-                          page === activePage ||
-                          page === activePage + 1
-                        );
-                      }
-                    })
-                    .map((page, i) => (
-                      <li key={i} className="page-item">
+                      })}
+                    </tbody>
+                  </table>
+                  <nav aria-label="Page navigation example ">
+                    <ul className="pagination d-flex justify-content-center ">
+                      <li className="page-item">
                         <a
                           className={`page-link ${
-                            page === activePage ? "active" : ""
-                          } `}
+                            activePage > 1 ? "" : "disabled"
+                          }`}
                           onClick={() => {
-                            if (page != activePage) {
-                              setActivePage(page);
+                            if (activePage >= 1) {
+                              setActivePage(activePage - 1);
                               setLoading(true);
                             }
                           }}
+                          aria-label="Previous"
                         >
-                          {page}
+                          <span aria-hidden="true">«</span>
                         </a>
                       </li>
-                    ))}
-                  <li className="page-item">
-                    <a
-                      className={`page-link ${
-                        activePage == pageNum.length ? "disabled" : ""
-                      }`}
-                      onClick={() => {
-                        setActivePage(activePage + 1);
-                        setLoading(true);
-                      }}
-                      aria-label="Next"
-                    >
-                      <span aria-hidden="true">»</span>
-                    </a>
-                  </li>
-                </ul>
-              </nav>
-            </>
-          ) : (
-            <NoData />
-          )}
-        </div>
-      )}
+                      {pageNum
+                        .filter((page) => {
+                          if (activePage == pageNum.length) {
+                            return (
+                              page == activePage ||
+                              page == activePage - 1 ||
+                              page == activePage - 2
+                            );
+                          } else {
+                            return (
+                              page === activePage - 1 ||
+                              page === activePage ||
+                              page === activePage + 1
+                            );
+                          }
+                        })
+                        .map((page, i) => (
+                          <li key={i} className="page-item">
+                            <a
+                              className={`page-link ${
+                                page === activePage ? "active" : ""
+                              } `}
+                              onClick={() => {
+                                if (page != activePage) {
+                                  setActivePage(page);
+                                  setLoading(true);
+                                }
+                              }}
+                            >
+                              {page}
+                            </a>
+                          </li>
+                        ))}
+                      <li className="page-item">
+                        <a
+                          className={`page-link ${
+                            activePage == pageNum.length ? "disabled" : ""
+                          }`}
+                          onClick={() => {
+                            setActivePage(activePage + 1);
+                            setLoading(true);
+                          }}
+                          aria-label="Next"
+                        >
+                          <span aria-hidden="true">»</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </>
+            ) : (
+              <NoData />
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 }

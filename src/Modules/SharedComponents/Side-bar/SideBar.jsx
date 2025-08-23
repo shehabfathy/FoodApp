@@ -10,14 +10,14 @@ export default function SideBar({ logOut }) {
   };
   return (
     <>
-      <div className="sidebar-container">
-        <Sidebar collapsed={isCollapse}>
+      <div className="sidebar-container   ">
+        <Sidebar collapsed={isCollapse} className="">
           <Menu>
             <img
               src={logo}
               onClick={() => sidebar()}
               alt="sidebar-img"
-              className="py-4"
+              className="py-4 "
             />
 
             <MenuItem

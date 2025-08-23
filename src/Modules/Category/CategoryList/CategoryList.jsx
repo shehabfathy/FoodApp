@@ -9,14 +9,16 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import DeleteConfirmation from "../../SharedComponents/DeleteConfirmation/DeleteConfirmation";
 import { useForm } from "react-hook-form";
-import { axiosInstance, categoriesUlr } from "../../../Services/Url";
+import { axiosInstance, categoriesUlr, TagUrl } from "../../../Services/Url";
 
 export default function CategoryList() {
   let [idItem, setIdItem] = useState(0);
+
   let [Category, setCategory] = useState([]);
   let [loading, setLoading] = useState(true);
   let [editId, setEditId] = useState(0);
   let [isAdd, setIsAdd] = useState(true);
+
   let [pageNum, setPageNum] = useState([]);
   let [activePage, setActivePage] = useState(1);
 
@@ -33,7 +35,7 @@ export default function CategoryList() {
     setIdItem(id);
     setShow(true);
   };
-
+  const [name, setName] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const handleCloseAdd = () => setShowAdd(false);
   const handleShowAdd = (id, name) => {
@@ -50,10 +52,14 @@ export default function CategoryList() {
     }
   };
 
-  let getAllCategories = async (pageSize, pageNumber) => {
+  let getAllCategories = async (pageSize, pageNumber, name) => {
     try {
       let { data } = await axiosInstance.get(categoriesUlr.allCategories, {
-        params: { pageSize, pageNumber },
+        params: {
+          pageSize,
+          pageNumber,
+          name,
+        },
       });
       setCategory(data.data);
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
@@ -104,9 +110,13 @@ export default function CategoryList() {
     }
   };
 
+  let handleFilter = (e) => {
+    setName(e.target.value);
+    setActivePage(1);
+  };
   useEffect(() => {
-    getAllCategories(4, activePage);
-  }, [activePage]);
+    getAllCategories(4, activePage, name);
+  }, [activePage, name]);
 
   return (
     <>
@@ -206,6 +216,15 @@ export default function CategoryList() {
         <div className="p-3">
           {Category.length > 0 ? (
             <>
+              <div className="position-relative mb-2">
+                <i className="fa-solid fa-magnifying-glass position-absolute icon-input"></i>
+                <input
+                  className="  form-control px-4"
+                  type="text"
+                  placeholder="Search by name... "
+                  onChange={handleFilter}
+                />
+              </div>
               <table className="table text-center ">
                 <thead>
                   <tr>

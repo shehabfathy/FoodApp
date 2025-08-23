@@ -5,6 +5,10 @@
   background-position: center;
   background-size: cover;
 }
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: "Inter", sans-serif;
 }
@@ -18,8 +22,7 @@ p {
 .sidebar-container .ps-sidebar-container {
   background-color: #1f263e;
   border-top-right-radius: 50px;
-  min-height: 115vh;
-  overflow-y: auto;
+  height: 100vh;
 }
 
 .sidebar-container .ps-menu-button {
@@ -91,11 +94,9 @@ button .btn-close {
 .table-input:focus {
   outline: 0;
 }
-.table-input {
-  width: 400px;
-}
+
 .icon-input {
   color: grey;
-  top: 15px;
+  top: 30%;
   left: 5px;
 }

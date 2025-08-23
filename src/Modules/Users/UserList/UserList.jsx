@@ -13,6 +13,7 @@ export default function UserList() {
   let [userList, setUserList] = useState([]);
   let [loading, setLoading] = useState(true);
   let [idItem, setIdItem] = useState(0);
+  const [name, setName] = useState("");
   let [pageNum, setPageNum] = useState([]);
   const [activePage, setActivePage] = useState(1);
   const [show, setShow] = useState(false);
@@ -21,10 +22,10 @@ export default function UserList() {
     setIdItem(id);
     setShow(true);
   };
-  let getAllUsers = async (pageSize, pageNumber) => {
+  let getAllUsers = async (pageSize, pageNumber, name) => {
     try {
       let { data } = await axiosInstance(userUrl.getUsers, {
-        params: { pageSize, pageNumber },
+        params: { pageSize, pageNumber, userName: name },
       });
       setUserList(data.data);
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
@@ -34,20 +35,25 @@ export default function UserList() {
       setLoading(false);
     }
   };
+
   let deleteUser = async () => {
     try {
       let { data } = await axiosInstance.delete(userUrl.deleteUser(idItem));
       handleClose();
-      getAllUsers();
+      getAllUsers(4, activePage, name);
       toast.success(data.message);
     } catch (error) {
       toast.error(error.message);
     }
   };
+  let handleFilter = (e) => {
+    setName(e.target.value);
+    setActivePage(1);
+  };
 
   useEffect(() => {
-    getAllUsers(4, activePage);
-  }, [activePage]);
+    getAllUsers(4, activePage, name);
+  }, [activePage, name]);
   return (
     <>
       <Modal show={show} onHide={handleClose}>
@@ -101,6 +107,15 @@ export default function UserList() {
         <div className="p-3">
           {userList.length > 0 ? (
             <>
+              <div className="position-relative mb-2">
+                <i className="fa-solid fa-magnifying-glass position-absolute icon-input"></i>
+                <input
+                  className="  form-control px-4"
+                  type="text"
+                  placeholder="Search by name... "
+                  onChange={handleFilter}
+                />
+              </div>
               <table className="table text-center ">
                 <thead>
                   <tr>

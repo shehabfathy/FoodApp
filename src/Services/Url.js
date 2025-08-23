@@ -25,3 +25,7 @@ export const recipeUrl = {
   allRecipes: `/Recipe/`,
   deleteRecipe: (id) => `/Recipe/${id}`,
 };
+
+export const TagUrl = {
+  getTags: `/tag/`,
+};

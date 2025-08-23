@@ -8,13 +8,15 @@ import SideBar from "../Side-bar/SideBar";
 export default function MasterLayout({ logout, data }) {
   return (
     <>
-      <div className="d-flex vh-100">
+      <div className="d-flex vh-100 overflow-hidden">
         <div className="">
           <SideBar logOut={logout} />
         </div>
-        <div className="w-100 ">
-          <Navbar Info={data} />
-          <Outlet />
+        <div className="w-100 d-flex flex-column  ">
+          <div className=" overflow-auto">
+            <Navbar Info={data} />
+            <Outlet />
+          </div>
         </div>
       </div>
     </>
