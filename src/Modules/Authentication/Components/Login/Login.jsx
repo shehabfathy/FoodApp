@@ -16,11 +16,10 @@ export default function Login({ getuser }) {
   } = useForm({ mode: "onChange" });
 
   async function onSubmit(value) {
-    console.log(value);
     try {
       let { data } = await axiosInstance.post(userUrl.login, value);
       setLoading(true);
-      toast.success("login success");
+      toast.success("Welcome❤️");
       localStorage.setItem("token", data.token);
       getuser();
       navigate("/dashboard");
@@ -83,6 +82,7 @@ export default function Login({ getuser }) {
                       {errors.email.message}
                     </div>
                   )}
+
                   <div className="input-group mb-2 ">
                     <span className="input-group-text" id="basic-addon1">
                       <i className="fa-solid fa-lock"></i>
@@ -102,16 +102,19 @@ export default function Login({ getuser }) {
                         inputElement.current = e;
                       }}
                       type="password"
-                      className="form-control position-relative "
+                      className="form-control  "
                       autoComplete="new-password"
                       placeholder="Password"
                       aria-label="password"
                       aria-describedby="basic-addon1"
                     />
-                    <i
-                      onClick={() => showPassword()}
-                      className="fa-solid fa-eye position-absolute end-0 translate-middle top-50"
-                    ></i>
+                    <span className="input-group-text">
+                      {" "}
+                      <i
+                        onClick={() => showPassword()}
+                        className="fa-solid fa-eye "
+                      ></i>
+                    </span>
                   </div>
                   {errors.password && (
                     <div className="text-danger mb-3">
@@ -120,7 +123,7 @@ export default function Login({ getuser }) {
                   )}
                   <div className="links d-flex justify-content-between align-items-center mb-4">
                     <Link
-                      to="register"
+                      to="/register"
                       className="text-black text-decoration-none "
                     >
                       Register Now?

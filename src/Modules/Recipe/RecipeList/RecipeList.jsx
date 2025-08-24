@@ -54,10 +54,11 @@ export default function RecipeList() {
         },
       });
       setRecipes(data.data);
+      toast.success(data.message || "get All Recipes");
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
       setLoading(false);
     } catch (error) {
-      toast(error.response.data.message);
+      toast.error(error.message);
       setLoading(false);
     }
   };

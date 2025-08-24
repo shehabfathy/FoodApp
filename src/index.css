@@ -5,8 +5,12 @@
   background-position: center;
   background-size: cover;
 }
-html {
+
+* {
   scroll-behavior: smooth;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 body {
@@ -35,7 +39,7 @@ p {
 }
 
 .sidebar-container img {
-  width: 110px;
+  width: 100%;
 }
 
 .demo {
@@ -99,4 +103,36 @@ button .btn-close {
   color: grey;
   top: 30%;
   left: 5px;
+}
+
+.notfoundCover {
+  background-image: url("../src/assets/Images/Vector.png");
+  background-repeat: no-repeat;
+  background-position: right;
+  background-size: 75%;
+  height: 100vh;
+}
+
+.notfoundCover .content {
+  width: fit-content;
+  top: 50%;
+  left: 5%;
+  transform: translateY(-50%);
+}
+
+.notfoundCover .logo {
+  width: fit-content;
+}
+
+.notfoundCover .image {
+  width: 50%;
+  bottom: 0;
+  right: 0;
+}
+.notfoundCover .image img {
+  width: 100%;
+}
+
+.notfoundCover .item {
+  width: 60%;
 }

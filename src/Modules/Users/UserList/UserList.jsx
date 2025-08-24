@@ -28,10 +28,12 @@ export default function UserList() {
         params: { pageSize, pageNumber, userName: name },
       });
       setUserList(data.data);
+
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
+      toast.success(data.message || "get All Users");
       setLoading(false);
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message);
       setLoading(false);
     }
   };

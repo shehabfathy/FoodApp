@@ -62,10 +62,12 @@ export default function CategoryList() {
         },
       });
       setCategory(data.data);
+
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
+      toast.success(data.message || "get all Categories");
       setLoading(false);
     } catch (error) {
-      toast(error.response.data.message);
+      toast.error(error.response.data.message);
       setLoading(false);
     }
   };
@@ -75,10 +77,10 @@ export default function CategoryList() {
       await axiosInstance.delete(categoriesUlr.deleteCategory(idItem));
       handleClose();
       getAllCategories();
-
+      toast.success("item deleted successfully");
       setLoading(false);
     } catch (error) {
-      toast(error.response.data.message);
+      toast.error(error.response.data.message || "Failed to delete item");
       setLoading(false);
     }
   };
