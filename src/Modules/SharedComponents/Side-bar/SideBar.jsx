@@ -1,18 +1,20 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import logo from "../../../assets/Images/sidebar.png";
 import ChangePassword from "../../Authentication/Components/ChangePassword/ChangePassword";
 import Modal from "react-bootstrap/Modal";
-export default function SideBar({ logOut }) {
+import { AuthContext } from "../../../Context/AuthContext";
+export default function SideBar() {
+  let { logOut, loginData } = useContext(AuthContext);
   let [isCollapse, setCollapse] = useState(false);
-
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => {
     setShow(true);
   };
 
+  let location = useLocation();
   let sidebar = () => {
     setCollapse(!isCollapse);
   };
@@ -37,26 +39,57 @@ export default function SideBar({ logOut }) {
             <MenuItem
               icon={<i className="fa-solid fa-house"></i>}
               component={<Link to="/dashboard" />}
+              active={location.pathname == "/dashboard"}
             >
               Home
             </MenuItem>
-            <MenuItem
-              icon={<i className="fa-solid fa-users "></i>}
-              component={<Link to="/dashboard/userList" />}
-            >
-              Users
-            </MenuItem>
+            {loginData?.userGroup == "SuperAdmin" ? (
+              <MenuItem
+                icon={<i className="fa-solid fa-users "></i>}
+                component={<Link to="/dashboard/userList" />}
+                active={location.pathname == "/dashboard/userList"}
+              >
+                Users
+              </MenuItem>
+            ) : (
+              ""
+            )}
             <MenuItem
               icon={<i className="fa-solid fa-table-cells-large"></i>}
               component={<Link to="/dashboard/recipeList" />}
+              active={location.pathname == "/dashboard/recipeList"}
             >
               Recipes{" "}
             </MenuItem>
             <MenuItem
-              icon={<i className="fa-solid fa-calendar-days"></i>}
-              component={<Link to="/dashboard/categoryList" />}
+              icon={
+                loginData?.userGroup == "SuperAdmin" ? (
+                  <i className="fa-solid fa-calendar-days"></i>
+                ) : (
+                  <i className="fa-regular fa-heart"></i>
+                )
+              }
+              component={
+                <Link
+                  to={`/dashboard/${
+                    loginData?.userGroup == "SuperAdmin"
+                      ? "categoryList"
+                      : "favorite"
+                  }`}
+                />
+              }
+              active={
+                location.pathname ==
+                `/dashboard/${
+                  loginData?.userGroup == "SuperAdmin"
+                    ? "categoryList"
+                    : "favorite"
+                }`
+              }
             >
-              Categories{" "}
+              {loginData?.userGroup == "SuperAdmin"
+                ? "Categories"
+                : "Favorites"}
             </MenuItem>
             <MenuItem
               onClick={() => handleShow()}

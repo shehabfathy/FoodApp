@@ -29,34 +29,14 @@ import Register from "./Modules/Authentication/Components/Register/Register";
 import VerifyAccount from "./Modules/Authentication/Components/VerfiyAccount/VerifyAccount";
 
 function App() {
-  let [loginData, setLoginData] = useState(null);
-
-  let getUser = () => {
-    let encodedToken = localStorage.getItem("token");
-    let decodedToken = jwtDecode(encodedToken);
-    setLoginData(decodedToken);
-  };
-
-  let logOut = () => {
-    localStorage.removeItem("token");
-    setLoginData(null);
-    <Navigate to="/login" />;
-  };
-
-  useEffect(() => {
-    if (localStorage.getItem("token")) {
-      getUser();
-    }
-  }, []);
-
   const routes = createBrowserRouter([
     {
       path: "",
       element: <Auth />,
       errorElement: <NotFound />,
       children: [
-        { index: true, element: <Login getuser={getUser} /> },
-        { path: "login", element: <Login getuser={getUser} /> },
+        { index: true, element: <Login /> },
+        { path: "login", element: <Login /> },
         { path: "register", element: <Register /> },
         { path: "resetPass", element: <ResetPass /> },
         { path: "forgetPass", element: <ForgetPass /> },
@@ -68,13 +48,13 @@ function App() {
     {
       path: "dashboard",
       element: (
-        <ProtectedRoute data={loginData}>
-          <MasterLayout logout={logOut} data={loginData} />
+        <ProtectedRoute>
+          <MasterLayout />
         </ProtectedRoute>
       ),
       errorElement: <NotFound />,
       children: [
-        { path: "", element: <Dashboard data={loginData} /> },
+        { path: "", element: <Dashboard /> },
         { path: "recipeList", element: <RecipeList /> },
         { path: "recipeData", element: <RecipeData /> },
         { path: "categoryList", element: <CategoryList /> },
@@ -86,7 +66,6 @@ function App() {
   return (
     <>
       <RouterProvider router={routes}></RouterProvider>
-      <ToastContainer />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import header from "../../../assets/Images/eating a variety of foods-amico.svg";
 import Header from "../../SharedComponents/Header/Header";
 import GirlPhoto from "../../../assets/Images/header.png";
@@ -12,12 +12,16 @@ import DeleteConfirmation from "../../SharedComponents/DeleteConfirmation/Delete
 import NoData from "../../SharedComponents/NoData/NoData";
 import {
   axiosInstance,
-  categoriesUlr,
+  categoriesUrl,
+  FavUrl,
   recipeUrl,
   TagUrl,
 } from "../../../Services/Url";
+import { AuthContext } from "../../../Context/AuthContext";
 export default function RecipeList() {
+  let { loginData } = useContext(AuthContext);
   let navigate = useNavigate();
+
   let [listId, setListId] = useState(null);
   let [Recipes, setRecipes] = useState([]);
   let [loading, setLoading] = useState(true);
@@ -25,6 +29,7 @@ export default function RecipeList() {
   const [activePage, setActivePage] = useState(1);
   let [idItem, setIdItem] = useState(0);
   const [show, setShow] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
   const [selectedTag, setSelectedTag] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(0);
@@ -34,6 +39,24 @@ export default function RecipeList() {
   const handleShow = (id) => {
     setIdItem(id);
     setShow(true);
+  };
+  const handleCloseAdd = () => setShowAdd(false);
+  const handleShowAdd = (id) => {
+    setIdItem(id);
+    setShowAdd(true);
+  };
+
+  let addToFav = async (recipeId) => {
+    try {
+      let { data } = await axiosInstance.post(FavUrl.AddToFav, {
+        recipeId: recipeId,
+      });
+
+      console.log(data);
+      toast.success("item add to Favorite");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Faild to add to favorite");
+    }
   };
 
   let getAllRecipes = async (
@@ -54,11 +77,11 @@ export default function RecipeList() {
         },
       });
       setRecipes(data.data);
-      toast.success(data.message || "get All Recipes");
+      toast.success(data.message || "show All Recipes");
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
       setLoading(false);
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || "Faild to Show Recipes");
       setLoading(false);
     }
   };
@@ -73,7 +96,7 @@ export default function RecipeList() {
   };
   let getAllCategories = async () => {
     try {
-      let { data } = await axiosInstance(categoriesUlr.allCategories);
+      let { data } = await axiosInstance(categoriesUrl.allCategories);
 
       setCategories(data.data);
     } catch (error) {
@@ -89,7 +112,7 @@ export default function RecipeList() {
       toast.success("Recipe deleted successfully");
       setLoading(false);
     } catch (error) {
-      toast(error.response.data.message);
+      toast(error.response.data.message || "Faild to delete Recipe");
       setLoading(false);
     }
   };
@@ -121,6 +144,23 @@ export default function RecipeList() {
         }
         imgpath={header}
       />
+      <Modal show={showAdd} onHide={handleCloseAdd}>
+        <Modal.Header closeButton></Modal.Header>
+        <Modal.Body>
+          <DeleteConfirmation deletedItem={"Recipe"} isAdd={true} />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="success"
+            onClick={() => {
+              addToFav(idItem);
+              handleCloseAdd();
+            }}
+          >
+            Add To Favorite
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <div>
         <div className="title d-flex justify-content-between align-items-center p-3">
           <div className="description">
@@ -128,20 +168,27 @@ export default function RecipeList() {
             <p>You can check all details</p>
           </div>
           <div className="btns">
-            <button
-              className="btn btn-success"
-              onClick={() => {
-                setLoading(true);
-                navigate("/dashboard/recipeData");
-                setLoading(false);
-              }}
-            >
-              {loading ? (
-                <i className="fa-solid fa-spinner"></i>
-              ) : (
-                <>Add New Item</>
-              )}
-            </button>
+            {loginData?.userGroup == "SuperAdmin" ? (
+              <button
+                className="btn btn-success"
+                onClick={() => {
+                  setLoading(true);
+                  navigate("/dashboard/recipeData");
+                  setLoading(false);
+                }}
+              >
+                {loading ? (
+                  <i
+                    className="fa-solid fa
+                  -spinner"
+                  ></i>
+                ) : (
+                  <>Add New Item</>
+                )}
+              </button>
+            ) : (
+              ""
+            )}
           </div>
         </div>
 
@@ -164,11 +211,13 @@ export default function RecipeList() {
           <div className="p-3">
             <Modal show={show} onHide={handleClose}>
               <Modal.Header className="py-4">
-                <i
+                <button
+                  type="button"
+                  aria-label="Delete Item"
                   onClick={handleClose}
-                  className="fa-regular fa-circle-xmark fa-xl ms-auto"
+                  className="fa-regular fa-circle-xmark fa-xl ms-auto bg-transparent border-0"
                   style={{ color: "rgba(204,0,0,1)" }}
-                ></i>
+                ></button>
               </Modal.Header>
               <Modal.Body>
                 <DeleteConfirmation deletedItem={"Recipe"} />
@@ -235,7 +284,11 @@ export default function RecipeList() {
                         <th scope="col">Description</th>
                         <th scope="col">tag</th>
                         <th scope="col">Category</th>
-                        <th scope="col">Action</th>
+                        <th scope="col">
+                          {loginData?.userGroup == "SuperAdmin"
+                            ? "Action"
+                            : "Add to Favorite"}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -263,48 +316,66 @@ export default function RecipeList() {
                             <td>{item.tag.name}</td>
                             <td>{item.category[0]?.name}</td>
                             <td>
-                              <div className=" listIcon">
-                                <i
-                                  className="fa-solid fa-ellipsis "
-                                  onClick={() => {
-                                    setListId(
-                                      listId === item.id ? null : item.id
-                                    );
-                                  }}
-                                >
-                                  {listId === item.id && (
-                                    <ul className=" p-2   shadow-sm ">
-                                      <li
-                                        className="mb-2 "
-                                        onClick={() => {
-                                          let isUpdate = true;
-                                          let EditData = {
-                                            name: item.name,
-                                            price: item.price,
-                                            id: item.id,
-                                            tagId: item.tag.id,
-                                            categoriesIds: item.category[0]?.id,
-                                            recipeImage: `https://upskilling-egypt.com:3006/${item.imagePath}`,
-                                          };
-                                          navigate("/dashboard/recipeData", {
-                                            state: { isUpdate, EditData },
-                                          });
-                                        }}
-                                      >
-                                        <i className="fa-solid fa-pen-to-square text-warning  "></i>
-                                        <span>Edit</span>
-                                      </li>
-                                      <li
-                                        className="d-flex align-align-items-center "
-                                        onClick={() => handleShow(item.id)}
-                                      >
-                                        <i className="fa-solid fa-trash-can text-danger  "></i>
-                                        <span>Delete</span>
-                                      </li>
-                                    </ul>
-                                  )}
-                                </i>
-                              </div>
+                              {loginData?.userGroup == "SuperAdmin" ? (
+                                <div className=" listIcon">
+                                  <button
+                                    type="button"
+                                    style={{ cursor: "pointer" }}
+                                    className="fa-solid fa-ellipsis bg-transparent border-0 "
+                                    onClick={() => {
+                                      setListId(
+                                        listId === item.id ? null : item.id
+                                      );
+                                    }}
+                                  >
+                                    {listId === item.id && (
+                                      <ul className=" p-2   shadow-sm ">
+                                        <li
+                                          className="mb-2 "
+                                          onClick={() => {
+                                            let isUpdate = true;
+                                            let EditData = {
+                                              name: item.name,
+                                              price: item.price,
+                                              id: item.id,
+                                              tagId: item.tag.id,
+                                              categoriesIds:
+                                                item.category[0]?.id,
+                                              recipeImage: `https://upskilling-egypt.com:3006/${item.imagePath}`,
+                                            };
+                                            navigate("/dashboard/recipeData", {
+                                              state: { isUpdate, EditData },
+                                            });
+                                          }}
+                                        >
+                                          <i
+                                            className="fa-solid fa-pen-to-square text-warning  bg-transparent border-0 "
+                                            style={{ cursor: "pointer" }}
+                                          ></i>
+                                          <span>Edit</span>
+                                        </li>
+                                        <li
+                                          className="d-flex align-align-items-center "
+                                          onClick={() => handleShow(item.id)}
+                                        >
+                                          <i
+                                            className="fa-solid fa-trash-can text-danger bg-transparent border-0   "
+                                            style={{ cursor: "pointer" }}
+                                          ></i>
+                                          <span>Delete</span>
+                                        </li>
+                                      </ul>
+                                    )}
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  aria-label="Add To Favorite"
+                                  className="fa-solid fa-heart text-danger bg-transparent border-0"
+                                  onClick={() => handleShowAdd(item.id)}
+                                ></button>
+                              )}
                             </td>
                           </tr>
                         );

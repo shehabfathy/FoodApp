@@ -19,7 +19,7 @@ export const userUrl = {
   deleteUser: (id) => `/Users/${id}`,
 };
 
-export const categoriesUlr = {
+export const categoriesUrl = {
   allCategories: `/Category/`,
   deleteCategory: (id) => `/Category/${id}`,
 };
@@ -27,6 +27,11 @@ export const categoriesUlr = {
 export const recipeUrl = {
   allRecipes: `/Recipe/`,
   deleteRecipe: (id) => `/Recipe/${id}`,
+};
+export const FavUrl = {
+  AddToFav: `/userRecipe/`,
+  getAllFav: `/userRecipe/`,
+  deleteFav: (id) => `userRecipe/${id}`,
 };
 
 export const TagUrl = {

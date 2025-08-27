@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Header from "../SharedComponents/Header/Header";
 import { useNavigate } from "react-router-dom";
-export default function Dashboard({ data }) {
+import { AuthContext } from "../../Context/AuthContext";
+export default function Dashboard() {
+  let { loginData } = useContext(AuthContext);
   let [loading, setLoading] = useState(false);
   let navigate = useNavigate();
   return (
     <>
       <Header
-        title={`Welcome ${data?.userName}`}
+        title={`Welcome ${loginData?.userName}`}
         text={
           "This is a welcoming screen for the entry of the application , you can now see the options"
         }
@@ -19,7 +21,8 @@ export default function Dashboard({ data }) {
         >
           <div className="description">
             <h5>
-              Fill the <span className="text-success">Recipes </span> !{" "}
+              {loginData?.userGroup == "SuperAdmin" ? "Fill the" : "Show the "}
+              <span className="text-success">Recipes </span> !{" "}
             </h5>
             <p className="w-75">
               you can now fill the meals easily using the table and form , click
@@ -28,7 +31,7 @@ export default function Dashboard({ data }) {
           </div>
           <div className="btns">
             <button
-              className="btn btn-success "
+              className="btn btn-success   "
               onClick={() => {
                 setLoading(true);
                 navigate("/dashboard/recipeList");
@@ -38,7 +41,13 @@ export default function Dashboard({ data }) {
                 <i className="fa-solid fa-spinner"></i>
               ) : (
                 <>
-                  Fill Recipes <i className="fa-solid fa-arrow-right ps-2"></i>
+                  {loginData?.userGroup == "SuperAdmin" ? "Fill" : ""} Recipes
+                  <i
+                    style={{ cursor: "pointer" }}
+                    className="fa-solid fa-arrow-right bg-transparent border-0 text-white ps-1  "
+                    type="button"
+                    aria-label="view All Recipes"
+                  ></i>
                 </>
               )}
             </button>

@@ -30,10 +30,10 @@ export default function UserList() {
       setUserList(data.data);
 
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
-      toast.success(data.message || "get All Users");
+      toast.success(data.message || "Show All Users");
       setLoading(false);
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(error.response?.data?.message || "Fail to show Users");
       setLoading(false);
     }
   };
@@ -43,9 +43,9 @@ export default function UserList() {
       let { data } = await axiosInstance.delete(userUrl.deleteUser(idItem));
       handleClose();
       getAllUsers(4, activePage, name);
-      toast.success(data.message);
+      toast.success(data.message || "Delete User successfully");
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to delete user");
     }
   };
   let handleFilter = (e) => {
@@ -60,11 +60,13 @@ export default function UserList() {
     <>
       <Modal show={show} onHide={handleClose}>
         <Modal.Header className="py-4">
-          <i
+          <button
+            type="button"
+            aria-label="close Btn"
             onClick={handleClose}
-            className="fa-regular fa-circle-xmark fa-xl ms-auto"
-            style={{ color: "rgba(204,0,0,1)" }}
-          ></i>
+            className="fa-regular fa-circle-xmark fa-xl ms-auto bg-transparent border-0"
+            style={{ color: "rgba(204,0,0,1)", cursor: "pointer" }}
+          ></button>
         </Modal.Header>
         <Modal.Body>
           <DeleteConfirmation deletedItem={"User"} />
@@ -148,10 +150,12 @@ export default function UserList() {
                         <td>{item.email}</td>
                         <td>{item.country}</td>
                         <td>
-                          <i
-                            className="fa-solid fa-trash-can text-danger  "
+                          <button
+                            type="button"
+                            className="fa-solid fa-trash-can text-danger  bg-transparent border-0  "
+                            style={{ cursor: "pointer" }}
                             onClick={() => handleShow(item.id)}
-                          ></i>
+                          ></button>
                         </td>
                       </tr>
                     );

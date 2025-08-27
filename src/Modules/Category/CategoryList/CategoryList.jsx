@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import header from "../../../assets/Images/eating a variety of foods-amico.svg";
 import Header from "../../SharedComponents/Header/Header";
 import axios from "axios";
@@ -9,19 +9,20 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import DeleteConfirmation from "../../SharedComponents/DeleteConfirmation/DeleteConfirmation";
 import { useForm } from "react-hook-form";
-import { axiosInstance, categoriesUlr, TagUrl } from "../../../Services/Url";
+import { axiosInstance, categoriesUrl, TagUrl } from "../../../Services/Url";
+import { AuthContext } from "../../../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function CategoryList() {
   let [idItem, setIdItem] = useState(0);
-
+  const { loginData } = useContext(AuthContext);
   let [Category, setCategory] = useState([]);
   let [loading, setLoading] = useState(true);
   let [editId, setEditId] = useState(0);
   let [isAdd, setIsAdd] = useState(true);
-
   let [pageNum, setPageNum] = useState([]);
   let [activePage, setActivePage] = useState(1);
-
+  let navigate = useNavigate();
   let {
     register,
     formState: { errors },
@@ -54,7 +55,7 @@ export default function CategoryList() {
 
   let getAllCategories = async (pageSize, pageNumber, name) => {
     try {
-      let { data } = await axiosInstance.get(categoriesUlr.allCategories, {
+      let { data } = await axiosInstance.get(categoriesUrl.allCategories, {
         params: {
           pageSize,
           pageNumber,
@@ -64,17 +65,17 @@ export default function CategoryList() {
       setCategory(data.data);
 
       setPageNum([...Array(data.totalNumberOfPages)].map((_, i) => i + 1));
-      toast.success(data.message || "get all Categories");
+      toast.success(data.message || "show all Categories");
       setLoading(false);
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response.data.message || "Faild to show Categories");
       setLoading(false);
     }
   };
 
   let DeleteItem = async () => {
     try {
-      await axiosInstance.delete(categoriesUlr.deleteCategory(idItem));
+      await axiosInstance.delete(categoriesUrl.deleteCategory(idItem));
       handleClose();
       getAllCategories();
       toast.success("item deleted successfully");
@@ -117,18 +118,24 @@ export default function CategoryList() {
     setActivePage(1);
   };
   useEffect(() => {
-    getAllCategories(4, activePage, name);
-  }, [activePage, name]);
+    if (loginData === null) return;
+    if (loginData?.userGroup == "SuperAdmin") {
+      getAllCategories(4, activePage, name);
+    } else {
+      navigate("/dashboard");
+    }
+  }, [activePage, name, loginData]);
 
   return (
     <>
       <Modal show={show} onHide={handleClose}>
         <Modal.Header className="py-4">
-          <i
+          <button
+            type="button"
             onClick={handleClose}
-            className="fa-regular fa-circle-xmark fa-xl ms-auto"
-            style={{ color: "rgba(204,0,0,1)" }}
-          ></i>
+            className="fa-regular fa-circle-xmark fa-xl ms-auto bg-transparent border-0"
+            style={{ color: "rgba(204,0,0,1)", cursor: "pointer" }}
+          ></button>
         </Modal.Header>
         <Modal.Body>
           <DeleteConfirmation deletedItem={"Category"} />
@@ -147,11 +154,11 @@ export default function CategoryList() {
       <Modal show={showAdd} onHide={handleCloseAdd}>
         <Modal.Header className="py-4 d-flex justify-content-between align-items-center">
           {<h5>{isAdd ? "Add Category" : "Update Category"}</h5>}
-          <i
+          <button
             onClick={handleCloseAdd}
-            className="fa-regular fa-circle-xmark fa-xl ms-auto"
-            style={{ color: "rgba(204,0,0,1)" }}
-          ></i>
+            className="fa-regular fa-circle-xmark fa-xl ms-auto bg-transparent border-0"
+            style={{ color: "rgba(204,0,0,1)", cursor: "pointer" }}
+          ></button>
         </Modal.Header>
         <Modal.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -244,14 +251,17 @@ export default function CategoryList() {
                         <td>{item.name}</td>
                         <td>{item.creationDate}</td>
                         <td>
-                          <i
-                            className="fa-solid fa-pen-to-square text-warning"
+                          <button
+                            type="button"
+                            className="fa-solid fa-pen-to-square text-warning bg-transparent border-0"
                             onClick={() => handleShowAdd(item.id, item.name)}
-                          ></i>
-                          <i
-                            className="fa-solid fa-trash-can text-danger ps-3 "
+                            style={{ cursor: "pointer" }}
+                          ></button>
+                          <button
+                            className="fa-solid fa-trash-can text-danger ps-3 bg-transparent border-0"
                             onClick={() => handleShow(item.id)}
-                          ></i>
+                            style={{ cursor: "pointer" }}
+                          ></button>
                         </td>
                       </tr>
                     );

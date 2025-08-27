@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import logo from "../../../assets/Images/me.jpg";
+import { AuthContext } from "../../../Context/AuthContext";
 
-export default function Navbar({ Info }) {
+export default function Navbar() {
+  let { loginData } = useContext(AuthContext);
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary py-2 m-2 rounded-4">
@@ -34,7 +36,7 @@ export default function Navbar({ Info }) {
                   alt="user-photo"
                 />
                 <a className="nav-link active" aria-current="page" href="#">
-                  {Info ? Info.userName : "Default User"}
+                  {loginData ? loginData.userName : "Default User"}
                 </a>
               </li>
             </ul>

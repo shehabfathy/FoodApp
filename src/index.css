@@ -136,3 +136,8 @@ button .btn-close {
 .notfoundCover .item {
   width: 60%;
 }
+
+.ps-active {
+  background-color: #0d9488;
+  color: #fff;
+}

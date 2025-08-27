@@ -7,7 +7,7 @@ export default function Header({ title, text, imgpath }) {
   return (
     <>
       <section className="container-fluid px-3 ">
-        <div className="row demo   px-3  rounded-4">
+        <div className="row demo   px-3   rounded-4">
           <div className="col-md-8 d-flex flex-column justify-content-center text-white">
             <h4>{title}</h4>
             <p className="w-75">{text}</p>

@@ -2,13 +2,16 @@ import logo from "../../../../assets/Images/44.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { axiosInstance, userUrl } from "../../../../Services/Url";
+import { AuthContext } from "../../../../Context/AuthContext";
 
-export default function Login({ getuser }) {
-  let navigate = useNavigate();
+export default function Login() {
+  let { getUser } = useContext(AuthContext);
   let [Loading, setLoading] = useState(false);
-  let inputElement = useRef();
+  let [showPassword, setShowPassword] = useState(false);
+  let navigate = useNavigate();
+
   let {
     register,
     formState: { errors, isValid, isDirty },
@@ -17,26 +20,20 @@ export default function Login({ getuser }) {
 
   async function onSubmit(value) {
     try {
-      let { data } = await axiosInstance.post(userUrl.login, value);
       setLoading(true);
-      toast.success("Welcome❤️");
-      localStorage.setItem("token", data.token);
-      getuser();
+      let { data } = await axiosInstance.post(userUrl.login, value);
+      localStorage.setItem("token", data?.token);
+      getUser();
       navigate("/dashboard");
+      toast.success("Welcome❤️");
     } catch (error) {
-      toast.error(error.response.data.message, { position: "top-center" });
+      toast.error("Login Failed", {
+        position: "top-center",
+      });
     } finally {
       setLoading(false);
     }
   }
-
-  let showPassword = () => {
-    if (inputElement.current.type == "password") {
-      inputElement.current.type = "text";
-    } else {
-      inputElement.current.type = "password";
-    }
-  };
 
   return (
     <>
@@ -97,11 +94,7 @@ export default function Login({ getuser }) {
                             "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 6 characters long.",
                         },
                       })}
-                      ref={(e) => {
-                        register("password").ref(e);
-                        inputElement.current = e;
-                      }}
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       className="form-control  "
                       autoComplete="new-password"
                       placeholder="Password"
@@ -111,8 +104,12 @@ export default function Login({ getuser }) {
                     <span className="input-group-text">
                       {" "}
                       <i
-                        onClick={() => showPassword()}
-                        className="fa-solid fa-eye "
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className={
+                          showPassword
+                            ? "fa-solid fa-eye "
+                            : "fa-solid fa-eye-slash"
+                        }
                       ></i>
                     </span>
                   </div>

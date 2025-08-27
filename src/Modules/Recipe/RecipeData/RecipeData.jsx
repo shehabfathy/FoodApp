@@ -18,7 +18,7 @@ export default function RecipeData() {
     setValue,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({ mode: "onChange" });
 
   useEffect(() => {
     if (isUpdate && tags.length > 0 && Category.length > 0) {
@@ -67,7 +67,7 @@ export default function RecipeData() {
       );
       navigate("/dashboard/recipeList");
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || "Faild");
     }
   };
 
@@ -83,7 +83,7 @@ export default function RecipeData() {
       );
       setCategory(data.data);
     } catch (error) {
-      toast(error.message);
+      toast(error.message || "Faild to get Category");
     }
   };
 
@@ -99,7 +99,7 @@ export default function RecipeData() {
       );
       setTags(data);
     } catch (error) {
-      toast(error.message);
+      toast(error.message || "Faild to fet Tags");
     }
   };
 
@@ -184,8 +184,14 @@ export default function RecipeData() {
           )}
 
           <input
-            {...register("price", { required: "Enter a price" })}
-            type="number"
+            {...register("price", {
+              required: "Enter a price",
+              pattern: {
+                value: /^[1-9][0-9]{1,}$/,
+                message: "Price must be a positive number and 2 digit",
+              },
+            })}
+            type="text"
             className="form-control mb-3"
             placeholder="Price"
           />
