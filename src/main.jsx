@@ -8,7 +8,7 @@ import { ToastContainer } from "react-toastify";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthContextProvider>
-      <ToastContainer limit={3} />
+      <ToastContainer limit={1} />
       <App />
     </AuthContextProvider>
   </StrictMode>

@@ -38,11 +38,11 @@ function App() {
         { index: true, element: <Login /> },
         { path: "login", element: <Login /> },
         { path: "register", element: <Register /> },
-        { path: "resetPass", element: <ResetPass /> },
-        { path: "forgetPass", element: <ForgetPass /> },
+        { path: "reset-Password", element: <ResetPass /> },
+        { path: "forget-Password", element: <ForgetPass /> },
         { path: "verifyAccount", element: <VerifyAccount /> },
 
-        { path: "changepassword", element: <ChangePassword /> },
+        { path: "change-password", element: <ChangePassword /> },
       ],
     },
     {
